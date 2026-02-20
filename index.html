@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Carnet Cross Training – v2</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-head">
+        <div>
+          <h1>Carnet Cross Training</h1>
+          <p>Mode hors-ligne, sauvegarde locale et QR ScanProf par élève.</p>
+        </div>
+        <div class="status-pill" id="status-indicator">&nbsp;</div>
+      </header>
+
+      <section class="card identity">
+        <header>
+          <h2>Identité</h2>
+          <p>Renseigne prénom + classe pour débloquer les exports.</p>
+        </header>
+        <div class="identity-grid">
+          <article>
+            <h3>Élève A</h3>
+            <label for="studentA-first">Prénom</label>
+            <input id="studentA-first" type="text" autocomplete="off" />
+            <label for="studentA-last">Nom (option)</label>
+            <input id="studentA-last" type="text" autocomplete="off" />
+            <label for="studentA-class">Classe</label>
+            <input id="studentA-class" type="text" autocomplete="off" />
+            <label for="studentA-group">Groupe / Cordée</label>
+            <input id="studentA-group" type="text" autocomplete="off" />
+          </article>
+          <article>
+            <h3>Élève B</h3>
+            <label for="studentB-first">Prénom</label>
+            <input id="studentB-first" type="text" autocomplete="off" />
+            <label for="studentB-last">Nom (option)</label>
+            <input id="studentB-last" type="text" autocomplete="off" />
+            <label for="studentB-class">Classe</label>
+            <input id="studentB-class" type="text" autocomplete="off" />
+            <label for="studentB-group">Groupe / Cordée</label>
+            <input id="studentB-group" type="text" autocomplete="off" />
+          </article>
+        </div>
+        <div class="mode-line">
+          <fieldset>
+            <legend>Mode élèves</legend>
+            <label><input type="radio" name="student-mode" value="solo" checked /> Solo</label>
+            <label><input type="radio" name="student-mode" value="altern" /> Duo alterné</label>
+          </fieldset>
+          <fieldset>
+            <legend>Élève actif</legend>
+            <label><input type="radio" name="active-student" value="A" checked /> A</label>
+            <label><input type="radio" name="active-student" value="B" /> B</label>
+          </fieldset>
+          <label class="observer">
+            Observateur
+            <input id="observer-input" type="text" placeholder="Prof / camarade" />
+          </label>
+        </div>
+      </section>
+
+      <section class="card training">
+        <header>
+          <h2>Tests 1'</h2>
+          <p>Enregistre les répétitions pour alimenter les QR.</p>
+        </header>
+        <form id="training-form" class="form-grid">
+          <label>
+            Élève
+            <select id="training-student">
+              <option value="A">Élève A</option>
+              <option value="B">Élève B</option>
+            </select>
+          </label>
+          <label>
+            Exercice
+            <input id="training-exercise" type="text" placeholder="Burpees" required />
+          </label>
+          <label>
+            Niveau / repère
+            <input id="training-level" type="text" placeholder="N2" />
+          </label>
+          <label>
+            Répétitions
+            <input id="training-reps" type="number" min="0" step="1" required />
+          </label>
+          <button type="submit" class="btn primary">Ajouter</button>
+        </form>
+        <div class="log-grid">
+          <div>
+            <h3>Historique A</h3>
+            <ul id="training-log-A" class="log-list"></ul>
+          </div>
+          <div>
+            <h3>Historique B</h3>
+            <ul id="training-log-B" class="log-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="card skills">
+        <header>
+          <h2>Blocs skill / parcours</h2>
+          <p>Consigne les runs pour calculer ct_s*</p>
+        </header>
+        <form id="skill-form" class="form-grid">
+          <label>
+            Élève
+            <select id="skill-student">
+              <option value="A">Élève A</option>
+              <option value="B">Élève B</option>
+            </select>
+          </label>
+          <label>
+            Skill / séance
+            <input id="skill-label" type="text" placeholder="Skill cardio" required />
+          </label>
+          <label>
+            Durée (min)
+            <input id="skill-duration" type="number" min="0" step="1" />
+          </label>
+          <label>
+            Blocs réussis
+            <input id="skill-blocks" type="number" min="0" step="1" />
+          </label>
+          <button type="submit" class="btn primary">Ajouter</button>
+        </form>
+        <div class="log-grid">
+          <div>
+            <h3>Skill A</h3>
+            <ul id="skill-log-A" class="log-list"></ul>
+          </div>
+          <div>
+            <h3>Skill B</h3>
+            <ul id="skill-log-B" class="log-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="card evaluation">
+        <header>
+          <h2>Évaluation & notes</h2>
+          <p>Le statut « Évalué » dépend uniquement du remplissage.</p>
+        </header>
+        <div class="evaluation-grid">
+          <article>
+            <h3>Élève A</h3>
+            <label for="eval-level-A">Niveau atteint</label>
+            <select id="eval-level-A" data-eval="A">
+              <option value="">—</option>
+              <option value="0">NA</option>
+              <option value="1">PA</option>
+              <option value="2">A</option>
+              <option value="3">Sup.</option>
+            </select>
+            <label for="notes-A">Notes perso</label>
+            <textarea id="notes-A" rows="3"></textarea>
+          </article>
+          <article>
+            <h3>Élève B</h3>
+            <label for="eval-level-B">Niveau atteint</label>
+            <select id="eval-level-B" data-eval="B">
+              <option value="">—</option>
+              <option value="0">NA</option>
+              <option value="1">PA</option>
+              <option value="2">A</option>
+              <option value="3">Sup.</option>
+            </select>
+            <label for="notes-B">Notes perso</label>
+            <textarea id="notes-B" rows="3"></textarea>
+          </article>
+          <article>
+            <h3>Professeur</h3>
+            <label for="prof-notes">Notes professeur</label>
+            <textarea id="prof-notes" rows="6"></textarea>
+          </article>
+        </div>
+      </section>
+
+      <section class="card summary">
+        <header>
+          <h2>Bilan & exports</h2>
+          <p>Génère les QR côté iPad sans réseau.</p>
+        </header>
+        <div class="qr-options">
+          <p>Contenu du QR</p>
+          <label><input type="checkbox" data-qr-option="identity" checked /> Identité (obligatoire)</label>
+          <label><input type="checkbox" data-qr-option="training" checked /> Tests 1'</label>
+          <label><input type="checkbox" data-qr-option="skill" checked /> Skill / blocs</label>
+          <label><input type="checkbox" data-qr-option="evaluation" checked /> Niveau</label>
+          <label><input type="checkbox" data-qr-option="notes" checked /> Notes</label>
+        </div>
+        <div class="summary-actions">
+          <button class="btn primary" id="generate-qr">QR bilan</button>
+          <button class="btn secondary" id="training-qr-btn">QR entraînement</button>
+          <button class="btn" id="finalize-session">Finaliser / archiver</button>
+          <button class="btn ghost" id="reset-carnet">Reset carnet</button>
+        </div>
+        <p class="hint" id="qr-warning"></p>
+        <div id="qr-output" class="qr-grid"></div>
+        <h3>QR Tests 1'</h3>
+        <div id="training-qr-output" class="qr-grid"></div>
+      </section>
+
+      <section class="card archives">
+        <header>
+          <h2>Archives locales</h2>
+          <p>Copie figée de la session lors du bouton Finaliser.</p>
+        </header>
+        <ul id="archive-list" class="log-list"></ul>
+      </section>
+    </main>
+
+    <script src="qrcode.min.js"></script>
+    <script src="jspdf.umd.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
