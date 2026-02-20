@@ -1,38 +1,38 @@
-# Crosstraning V2
+# Carnet Cross Training – Persistant & QR
 
-Carnet Cross Training hors-ligne optimisé iPad. Tout fonctionne localement : aucune requête réseau, QRs ScanProf compatibles et état sauvegardé dans `localStorage` (`CT_APP_STATE_V1`).
+## Mode hors-ligne et stockage local
+- L’application fonctionne 100 % hors-ligne (aucun `fetch`/XHR).
+- Toutes les données sont sauvegardées dans `localStorage` (ou `sessionStorage` si `STORAGE_MODE` est modifié) sous la clé `CT_APP_STATE_V1`.
+- Le payload stocké contient `v`, `updatedAt`, `students`, `mode`, `training`, `skills`, `evaluation`, `notes`, `archives` ainsi qu’un `snapshot` complet de l’état courant pour reprise fidèle.
+- Le bouton **Réinitialiser carnet** appelle `resetState()` : suppression de la clé `CT_APP_STATE_V1`, réinitialisation de l’état par défaut puis rechargement de la page.
 
-## Périmètre fonctionnel
-- Saisie identités (élèves A/B), mode solo/alterné, observateur.
-- Historique entraînements (tests 1').
-- Historique runs « skill » (durée / blocs).
-- Évaluation rapide + notes élèves & prof.
-- Boutons export :
-  - **QR bilan** → 1 QR JSON plat par élève avec sections sélectionnées (identité, training, skill, niveau, notes).
-  - **QR entraînement** → version allégée (training only).
-- **Finaliser / archiver** ajoute un snapshot dans la liste locale.
-- **Reset carnet** nettoie `localStorage`.
+## Export ScanProf (QR JSON UTF‑8 plat)
+- Chaque QR encode **un seul élève** dans un objet JSON plat : `nom`, `prenom`, `classe`, `groupe`, puis des champs compacts `ct_*`.
+- Les cases à cocher `data-qr-option` (Identité/Skill/Training/Evaluation/Notes) pilotent les sections optionnelles. Identité reste toujours présente (ScanProf exige nom/prénom/classe).
+- Les champs ajoutés respectent la limite de ~2800 octets (`QR_PAYLOAD_LIMIT`). Si la taille dépasse, le script supprime dans cet ordre : `notes` → `evaluation` → `skill` → `training`. Chaque retrait écrit un `console.warn`.
+- Le payload inclut un éventuel objet `__labels` pour fournir les libellés lisibles côté ScanProf.
+- `renderQr()` s’appuie sur `qrcode.min.js` déjà présent et injecte les QR dans `#qr-output` (bilan) et `#training-qr-output` (bouton Tests 1’). Duo alterné : deux QRs générés à la suite.
 
-## Structure fichiers
-```
-index.html        # UI principale
-styles.css        # Style light responsive
-script.js         # Persistance + logique QR
-qrcode.min.js     # Librairie QR locale
-jspdf.umd.min.js  # Inclus (utilisable plus tard)
-```
+## Stratégie de limitation
+- Historique entraînement : seules les 3 dernières mesures (`ct_t1..ct_t3`) par élève sont exportées.
+- Skill : nom, parcours, focus (4 exercices max) + nombre de tranches complétées (`ct_cycles`).
+- Évaluation : champs `ct_lvl_cardio`, `ct_lvl_lower`, `ct_lvl_upper`, `ct_lvl_core` lorsque renseignés.
+- Notes : `ct_note` limité à 280 caractères. Supprimé en premier lors d’un dépassement.
 
-## QR ScanProf
-- Objet plat JSON UTF‑8 (< 2800 octets). Champs obligatoires : `nom`, `prenom`, `classe`, `groupe`.
-- Sections facultatives (`ct_t*`, `ct_s*`, `ct_lvl`, `ct_note`) pilotées par les cases à cocher.
-- Trim automatique (ordre : notes → evaluation → skill → training) si la taille dépasse la limite. Les clés supprimées sont signalées dans la carte QR.
-- `__labels` décrit chaque colonne pour faciliter l’import ScanProf.
+## Procédure de test rapide
+1. Renseigner les identités (prénom + classe) des élèves A/B puis choisir le mode (solo/alterné).
+2. Lancer un test entraînement, saisir des répétitions et sauvegarder.
+3. Aller dans **Bilan**, cocher/décocher les options QR puis cliquer sur **QR ScanPro** : vérifier qu’un QR par élève apparaît dans `#qr-output`.
+4. Sur la page entraînement, cliquer sur **QR tests 1’** pour afficher les QRs dédiés (`#training-qr-output`).
+5. Utiliser **Enregistrer** pour ajouter un snapshot dans l’onglet Archives, puis **Réinitialiser carnet** pour vérifier que le stockage est bien vidé.
 
-## Persistance
-- `saveState()` écrit un snapshot complet sous `CT_APP_STATE_V1` (clé JSON). Tout changement (inputs, formulaires, etc.) déclenche une sauvegarde et met à jour le badge « Sauvegarde ».
+## Fiches pédagogiques
+- La page `fiches.html` reprend les visuels façon plaquette (schéma, critères, sécurité, muscles, étirements, niveaux).
+- Accessible depuis l’accueil (bouton « Fiches exercices ») ou directement via GitHub Pages.
+- `sheets.js` génère les blocs à partir d’un jeu de données statique, `sheets.css` applique le style Apple‑like.
 
-## Test rapide
-1. Renseigner prénom + classe pour A/B, ajouter au moins un test 1'.
-2. Cliquer « QR bilan » → vérifier l’affichage des deux QR.
-3. Cliquer « Finaliser / archiver » → voir l’entrée dans la liste.
-4. Cliquer « Reset carnet » → retour état vierge (confirmer la boîte de dialogue).
+## Bibliothèque Cross Training (CSV Numbers)
+- Le fichier `data/skills.csv` (UTF‑8) contient les challenges exportés depuis Numbers avec `name,difficulty,points`.
+- Au chargement, l’app essaie de lire ce CSV (aucune requête réseau). En cas d’erreur, un fallback codé en dur prend le relais.
+- La page **Mode skill** affiche cette bibliothèque : on y assigne les challenges aux élèves A/B, les sélections sont sauvegardées en local (`assignedChallenges`).
+- Les challenges associés apparaissent dans le roster, se retrouvent dans le QR ScanProf (`ct_challenge*`) et sont persistés dans `localStorage`.
